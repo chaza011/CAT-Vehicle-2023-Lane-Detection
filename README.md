@@ -6,7 +6,7 @@ If we take a snapshot of our view from the driver's seat of a car, we will see t
 
 <p align="center">
   <img src="https://github.com/chaza011/Lane-Detection/blob/main/Screenshot%202023-11-10%20101525.png" 
-    alt="The lane analysis process: we first send our image to our lane segmentation model and object detector. Then we combine both outputs and send it to the Lane Analyzer" width="400"/>
+    alt="The lane analysis process: we first send our image to our lane segmentation model and object detector. Then we combine both outputs and send it to the Lane Analyzer" width="1000"/>
 </p>
 
 ## Models
