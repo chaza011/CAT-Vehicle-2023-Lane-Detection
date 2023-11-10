@@ -6,7 +6,7 @@ If we take a snapshot of our view from the driver's seat of a car, we will see t
 
 
 ## Models
-Here we will show/explain the achitecture for the lane segmentation models as to aid in any confusion when reading the code we provide. Here we only briefly go over the general outline of the model and do not go into too much depth. Below is the flow of our system: we first send an input image through our lane and object detection models and combine the output to be sent to the lane analyzer. 
+Here we will show/explain the achitecture for the lane segmentation models as to aid in any confusion when reading the code we provide. Here we only briefly go over the general outline of the model and do not go into too much depth. For more information on CNNs please see: https://github.com/chaza011/Intro-to-Machine-Learning. Below is the flow of our system: we first send an input image through our lane and object detection models and combine the output to be sent to the lane analyzer. 
 
 <p align="center">
   <img src="https://github.com/chaza011/Lane-Detection/blob/main/Screenshot%202023-11-10%20101525.png" 
