@@ -4,13 +4,13 @@ If we take a snapshot of our view from the driver's seat of a car, we will see t
 
 ![image](https://github.com/chaza011/Lane-Detection/assets/118681555/2de4c829-3c42-4fd0-accc-c282b00496e5)
 
+
+## Models
+Here we will show/explain the achitecture for the lane segmentation models as to aid in any confusion when reading the code we provide.
 <p align="center">
   <img src="https://github.com/chaza011/Lane-Detection/blob/main/Screenshot%202023-11-10%20101525.png" 
   alt="The lane analysis process: we first send our image to our lane segmentation model and object detector. Then we combine both outputs and send it to the Lane Analyzer" width="1000"/>
 </p>
-
-## Models
-
 ### Convolutional AutoEncoder
 
 ### U-Net
