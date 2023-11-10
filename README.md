@@ -6,13 +6,15 @@ If we take a snapshot of our view from the driver's seat of a car, we will see t
 
 
 ## Models
-Here we will show/explain the achitecture for the lane segmentation models as to aid in any confusion when reading the code we provide.
+Here we will show/explain the achitecture for the lane segmentation models as to aid in any confusion when reading the code we provide. Here we only briefly go over the general outline of the model and do not go into too much depth. Below is the flow of our system: we first send an input image through our lane and object detection models and combine the output to be sent to the lane analyzer. 
+
 <p align="center">
   <img src="https://github.com/chaza011/Lane-Detection/blob/main/Screenshot%202023-11-10%20101525.png" 
   alt="The lane analysis process: we first send our image to our lane segmentation model and object detector. Then we combine both outputs and send it to the Lane Analyzer" width="1000"/>
 </p>
-### Convolutional AutoEncoder
 
+### Convolutional AutoEncoder
+The convolutional autoencoder uses convolution layers to learn valuable features from that image as it encodes it into a lower dimensional latent space. The decoder then uses the encoding and brings it back to its original dimensionality, but now in such a way that it satisifes an objective function, which in this case is correctly classifying each pixel as 0 (not lane) or 1 (lane). 
 ### U-Net
 
 ### U-LSTM for Continuous Segmentation
