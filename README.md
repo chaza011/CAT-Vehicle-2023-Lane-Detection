@@ -9,12 +9,12 @@ If we take a snapshot of our view from the driver's seat of a car, we will see t
 " alt="The lane analysis process: we first send our image to our lane segmentation model and object detector. Then we combine both outputs and send it to the Lane Analyzer" width="400"/>
 </p>
 
-##Models
+## Models
 
-###Convolutional AutoEncoder
+### Convolutional AutoEncoder
 
-###U-Net
+### U-Net
 
-###U-LSTM for Continuous Segmentation
+### U-LSTM for Continuous Segmentation
 
-###Vision Transformers for Continuous Segmentation
+### Vision Transformers for Continuous Segmentation
