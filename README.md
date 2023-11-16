@@ -17,6 +17,10 @@ Here we will show/explain the achitecture for the lane segmentation models as to
 The convolutional autoencoder uses convolution layers to learn valuable features from that image as it encodes it into a lower dimensional latent space. The decoder then uses the encoding and brings it back to its original dimensionality, but now in such a way that it satisifes an objective function, which in this case is correctly classifying each pixel as 0 (not lane) or 1 (lane). 
 ### U-Net
 
+The U-Net utilizes the autoencoder architecture, but it also sports skip connections that take the output from each encoder block and concatenate them to the inputs for its corresponding decoder block. The skip connections maitain feature information from different resolutions in the encoding process. The U-Net has been shown to be successful in segmenation tasks as it was originally developed for medical segmentation. For more information please read the original paper: https://arxiv.org/abs/1505.04597. 
+
 ### U-LSTM for Continuous Segmentation
+
+
 
 ### Vision Transformers for Continuous Segmentation
