@@ -96,12 +96,14 @@ for i in range(epochs):
   print('---------------------')
   #Train
   print("Train")
+  model.train()
   train_loss, train_F1 = epoch(model, train_loader, opt)
   print('Train Loss: {train_loss}')
   print('Train F1: {train_f1}')
   print('---------------------')
   #Small Test
   print("Test")
+  model.eval()
   test_loss,test_F1 = epoch(model, test_loader)
   print('Test Loss: {test_loss}')
   print('---------------------')
