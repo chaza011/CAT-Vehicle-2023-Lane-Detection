@@ -137,4 +137,3 @@ class LaneDetectorULSTM(nn.Module):
       output = self.Out(output)
       return output
 
-LaneDetectorULSTM = LaneDetectorULSTM()
