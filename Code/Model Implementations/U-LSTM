@@ -1,1 +1,140 @@
+#U-Net with LSTM
 
+#ConvBlock Class
+class ConvBlock(nn.Module):
+  def __init__(self, input, output, kernel_size=3):
+    super(ConvBlock, self).__init__()
+    self.ConvBlock = nn.Sequential(
+          nn.Conv2d(input, output, kernel_size, padding = 'same'),
+          nn.BatchNorm2d(output),
+          nn.ReLU(),
+          nn.Conv2d(output, output, kernel_size, padding = 'same'),
+          nn.BatchNorm2d(output),
+          nn.ReLU()
+        )
+  def forward(self, x):
+    x = self.ConvBlock(x)
+    return x
+
+#UpConv Class
+class UpConv(nn.Module):
+  def __init__(self, input, output):
+    super(UpConv, self).__init__()
+    self.UpConv = nn.ConvTranspose2d(input,output,2, stride = 2)
+  def forward(self, x):
+    x = self.UpConv(x)
+    return x
+
+#LSTM Class
+class LSTM_Cell(nn.Module):
+  def __init__(self, input_1, input_2, output):
+    super(LSTM_Cell, self).__init__()
+    self.Conv1 = nn.Sequential(
+        nn.Conv2d(input_1, output, kernel_size=3, padding = 'same'),
+        nn.BatchNorm2d(512),
+        nn.ReLU()
+    )
+    self.Conv2 = nn.Sequential(
+        nn.Conv2d(input_2, output, kernel_size=3, padding = 'same'),
+        nn.BatchNorm2d(512),
+        nn.ReLU()
+    )
+    self.BN = nn.BatchNorm2d(1024)
+    self.f = nn.Sigmoid()
+    self.i = nn.Sigmoid()
+    self.c = nn.Tanh()
+    self.o = nn.Sigmoid()
+    self.out = nn.Tanh()
+
+  def forward(self, x, hidden_state, current_state):
+    x_conv = self.Conv1(x)
+    hidden_conv = self.Conv2(hidden_state)
+    x_combined = torch.cat((x_conv, hidden_conv), dim= 1)
+    f = self.f(x_combined)
+    i = self.i(x_combined)
+    c = self.c(x_combined)
+    o = self.o(x_combined)
+    current_state_next = self.BN((f*current_state) + (i*c))
+    hidden_state_next = o * self.out(current_state_next)
+    return hidden_state_next, current_state_next
+
+class LaneDetectorULSTM(nn.Module):
+  def __init__(self):
+        super(LaneDetectorULSTM, self).__init__()
+        #Encoder
+        self.EncBlock_1 = ConvBlock(3, 64).to(device)         #Block 1
+        self.EncBlock_2 = ConvBlock(64,128).to(device)        #Block 2
+        self.EncBlock_3 = ConvBlock(128, 256).to(device)      #Block 3
+        self.EncBlock_4 = ConvBlock(256,512).to(device)       #Block 4
+        self.MaxPool2d = nn.MaxPool2d(2).to(device)           #MaxPooling
+        #Bottleneck
+        self.LSTM_Cell_1 = LSTM_Cell(512, 1024, 512).to(device)
+        self.LSTM_Cell_2 = LSTM_Cell(1024, 1024, 512).to(device)
+        #Decoder
+        self.UpConv_1 = UpConv(1024, 512).to(device)          #UpConv 1
+        self.DecBlock_1 = ConvBlock(1024, 512).to(device)     #Block 1
+        self.UpConv_2 = UpConv(512, 256).to(device)           #UpConv 2
+        self.DecBlock_2 = ConvBlock(512, 256).to(device)      #Block 2
+        self.UpConv_3 = UpConv(256, 128).to(device)           #UpConv 3
+        self.DecBlock_3 = ConvBlock(256, 128).to(device)      #Block 3
+        self.UpConv_4 = UpConv(128, 64).to(device)            #UpConv 4
+        self.DecBlock_4 = ConvBlock(128, 64).to(device)      #Block 4
+        self.DecBlock_5 = ConvBlock(64, 64).to(device)        #Block 5
+        #Output
+        self.Out = nn.Sequential(
+            nn.Conv2d(64, 3, 1, padding = 'same'),
+            #nn.Sigmoid()
+        ).to(device)
+
+  def forward(self, x):
+      #Encoder
+      #Block 1
+      e1 = self.EncBlock_1(x)
+      p1 = self.MaxPool2d(e1)
+      #Block 2
+      e2 = self.EncBlock_2(p1)
+      p2 = self.MaxPool2d(e2)
+      #Block 3
+      e3 = self.EncBlock_3(p2)
+      p3 = self.MaxPool2d(e3)
+      #Block 4
+      e4 = self.EncBlock_4(p3)
+      p4 = self.MaxPool2d(e4)
+
+      #Bottleneck
+      hidden_state_1 = torch.zeros(1,1024,14,14).to(device)
+      current_state_1 = torch.zeros(1,1024,14,14).to(device)
+      hidden_state_2 = torch.zeros(1,1024,14,14).to(device)
+      current_state_2 = torch.zeros(1,1024,14,14).to(device)
+      BottleNeck = torch.zeros(20,1024,14,14).to(device)
+      for t in range(20):
+        x_t = p4[t]
+        x_t = x_t.reshape(1,512,14,14)
+        hidden_state_1, current_state_1 = self.LSTM_Cell_1(x_t, hidden_state_1, current_state_1)
+        hiden_state_2, current_state_2 = self.LSTM_Cell_2(hidden_state_1, hidden_state_2, current_state_2)
+        BottleNeck[t] = hidden_state_2
+
+      #Decoder
+      #Block 1
+      uc1 = self.UpConv_1(BottleNeck)
+      d1 = torch.cat([uc1, e4],dim=1)
+      d1 = self.DecBlock_1(d1)
+      #Block 2
+      uc2 = self.UpConv_2(d1)
+      d2 = torch.cat([uc2, e3],dim=1)
+      d2 = self.DecBlock_2(d2)
+      #Block 3
+      uc3 = self.UpConv_3(d2)
+      d3 = torch.cat([uc3, e2], dim=1)
+      d3 = self.DecBlock_3(d3)
+      #Block 4
+      uc4 = self.UpConv_4(d3)
+      d4 = torch.cat([uc4, e1], dim=1)
+      d4 = self.DecBlock_4(d4)
+
+      #Output
+      output = self.DecBlock_5(d4)
+      output = self.Out(output)
+      return output
+
+LaneDetectorULSTM = LaneDetectorULSTM()
