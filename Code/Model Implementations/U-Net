@@ -1,1 +1,93 @@
+#UNet Lane Detector
 
+#ConvBlock Class
+class ConvBlock(nn.Module):
+  def __init__(self, input, output, kernel_size=3):
+    super(ConvBlock, self).__init__()
+    self.ConvBlock = nn.Sequential(
+          nn.Conv2d(input, output, kernel_size, padding = 'same'),
+          nn.BatchNorm2d(output),
+          nn.ReLU(),
+          nn.Conv2d(output, output, kernel_size, padding = 'same'),
+          nn.BatchNorm2d(output),
+          nn.ReLU()
+        )
+  def forward(self, x):
+    x = self.ConvBlock(x)
+    return x
+
+#UpConv Class
+class UpConv(nn.Module):
+  def __init__(self, input, output):
+    super(UpConv, self).__init__()
+    self.UpConv = nn.ConvTranspose2d(input,output,2, stride = 2)
+  def forward(self, x):
+    x = self.UpConv(x)
+    return x
+
+class LaneDetectorU(nn.Module):
+  def __init__(self):
+        super(LaneDetectorU, self).__init__()
+        #Encoder
+        self.EncBlock_1 = ConvBlock(3, 64).to(device)         #Block 1
+        self.EncBlock_2 = ConvBlock(64,128).to(device)        #Block 2
+        self.EncBlock_3 = ConvBlock(128, 256).to(device)      #Block 3
+        self.EncBlock_4 = ConvBlock(256,512).to(device)       #Block 4
+        self.MaxPool2d = nn.MaxPool2d(2).to(device)           #MaxPooling
+        #Bottleneck
+        self.Bottleneck = ConvBlock(512, 1024).to(device)
+        #Decoder
+        self.UpConv_1 = UpConv(1024, 512).to(device)          #UpConv 1
+        self.DecBlock_1 = ConvBlock(1024, 512).to(device)     #Block 1
+        self.UpConv_2 = UpConv(512, 256).to(device)           #UpConv 2
+        self.DecBlock_2 = ConvBlock(512, 256).to(device)      #Block 2
+        self.UpConv_3 = UpConv(256, 128).to(device)           #UpConv 3
+        self.DecBlock_3 = ConvBlock(256, 128).to(device)      #Block 3
+        self.UpConv_4 = UpConv(128, 64).to(device)            #UpConv 4
+        self.DecBlock_4 = ConvBlock(128, 64).to(device)      #Block 4
+        self.DecBlock_5 = ConvBlock(64, 64).to(device)        #Block 5
+        #Output
+        self.Out = nn.Sequential(
+            nn.Conv2d(64, 3, 1, padding = 'same'),
+            #nn.Sigmoid()
+        ).to(device)
+  def forward(self, x):
+      #Encoder
+      #Block 1
+      e1 = self.EncBlock_1(x)
+      p1 = self.MaxPool2d(e1)
+      #Block 2
+      e2 = self.EncBlock_2(p1)
+      p2 = self.MaxPool2d(e2)
+      #Block 3
+      e3 = self.EncBlock_3(p2)
+      p3 = self.MaxPool2d(e3)
+      #Block 4
+      e4 = self.EncBlock_4(p3)
+      p4 = self.MaxPool2d(e4)
+
+      #Bottleneck
+      BotNeck = self.Bottleneck(p4)
+
+      #Decoder
+      #Block 1
+      uc1 = self.UpConv_1(BotNeck)
+      d1 = torch.cat([uc1, e4],dim=1) #Apply skip connection concatenation 
+      d1 = self.DecBlock_1(d1)
+      #Block 2
+      uc2 = self.UpConv_2(d1)
+      d2 = torch.cat([uc2, e3],dim=1) #Apply skip connection concatenation
+      d2 = self.DecBlock_2(d2)
+      #Block 3
+      uc3 = self.UpConv_3(d2)
+      d3 = torch.cat([uc3, e2], dim=1) #Apply skip connection concatenation
+      d3 = self.DecBlock_3(d3)
+      #Block 4
+      uc4 = self.UpConv_4(d3)
+      d4 = torch.cat([uc4, e1], dim=1) #Apply skip connection concatenation
+      d4 = self.DecBlock_4(d4)
+
+      #Output
+      output = self.DecBlock_5(d4)
+      output = self.Out(output)
+      return output
