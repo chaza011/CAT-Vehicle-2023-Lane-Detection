@@ -21,6 +21,8 @@ The U-Net utilizes the autoencoder architecture, but it also sports skip connect
 
 ### U-LSTM for Continuous Segmentation
 
-
+Driving is a continuous task, and we often use our memory of where things are on the road as we drive. For example, we do not forget where the lane is just because a car is covering it in a particular instance. This is important as a model that does not make use of previous frame information will have more trouble accurately predicting lanes for challenging scenerios such as curvature and occlusion of lanes. With this we show an implementation of a U-Net with a Long-Short-Term-Memory (LSTM) component as the bottleneck. The LSTM learns temporal information and now gives the model access to previous frame information when making a prediction. 
 
 ### Vision Transformers for Continuous Segmentation
+
+Transformers have shown to be state of the art in vision-based tasks with vision transformer models. We decided to create a vision transformer (ViT) network that utilizes a pre-trained ViT for processing indivigual frames and then a second vision transformer we made to process temporal information between frames before making a decision. In this network each frame is processed by the first ViT and then added to a sequence of frames which are processed by the temporal model. 
